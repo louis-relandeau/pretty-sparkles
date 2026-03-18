@@ -4,11 +4,10 @@ project(pretty-sparkles)
 set(IMGUI_DIR imgui)
 set(SRC_DIR src)
 
-message(${IMGUI_DIR})
-
 set(SOURCES
     ${SRC_DIR}/main.cpp
     ${SRC_DIR}/glad.c
+    ${SRC_DIR}/Shader.cpp
     ${IMGUI_DIR}/imgui.cpp
     ${IMGUI_DIR}/imgui_demo.cpp
     ${IMGUI_DIR}/imgui_draw.cpp
@@ -24,7 +23,7 @@ add_executable(pretty-sparkles ${SOURCES})
 target_include_directories(pretty-sparkles PRIVATE
     ${IMGUI_DIR}
     ${IMGUI_DIR}/backends
-    /include
+    ${CMAKE_SOURCE_DIR}/include
 )
 
 # Find GLFW
