@@ -11,6 +11,7 @@
 #include <cmath>
 
 #include "Shader.hpp"
+#include "dielectric_breakdown.cpp"
 
 // Window
 int WIN_W = 1100;
@@ -23,9 +24,13 @@ void framebufferSizeCallback(GLFWwindow* /*window*/, int width, int height) {
     glViewport(0, 0, width, height);
 }
 
+
+constexpr int N = 1000;  // Compile-time constant
+int arr[N][N];
+
 // Matrix data
-const int ROWS = 16;
-const int COLS = 16;
+const int ROWS = N;
+const int COLS = N;
 float matrix[ROWS][COLS];
 
 // UI-controlled parameters
@@ -37,14 +42,18 @@ static float time_val = 0.0f;
 void fillMatrix() {
     for (int r = 0; r < ROWS; r++)
         for (int c = 0; c < COLS; c++) {
-            float x = (float)c / COLS * 6.28f * freqX;
-            float y = (float)r / ROWS * 6.28f * freqY;
-            matrix[r][c] = (std::sin(x + time_val) * std::cos(y + time_val) + 1.0f) * 0.5f;
+            // float x = (float)c / COLS * 6.28f * freqX;
+            // float y = (float)r / ROWS * 6.28f * freqY;
+            matrix[r][c] = arr[r][c];
         }
 }
 
 
 int main() {
+    
+    Cluster<N> cluster(arr);  // Pass the array
+    cluster.init();
+    // cluster.print();
 
     // GLFW
     if (!glfwInit()) { std::cerr << "GLFW init failed\n"; return -1; }
@@ -119,6 +128,8 @@ int main() {
 
     // Render loop
     while (!glfwWindowShouldClose(window)) {
+        cluster.step();
+
         glfwPollEvents();
         if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
             glfwSetWindowShouldClose(window, true);
@@ -166,18 +177,18 @@ int main() {
         ImGui::Checkbox("Animate", &animate);
 
         ImGui::SeparatorText("Cell values");
-        if (ImGui::BeginTable("matrix", COLS,
-            ImGuiTableFlags_Borders | ImGuiTableFlags_ScrollY,
-            ImVec2(0, 160))) {
-            for (int r = 0; r < ROWS; r++) {
-                ImGui::TableNextRow();
-                for (int c = 0; c < COLS; c++) {
-                    ImGui::TableSetColumnIndex(c);
-                    ImGui::Text("%.2f", matrix[r][c]);
-                }
-            }
-            ImGui::EndTable();
-        }
+        // if (ImGui::BeginTable("matrix", COLS,
+        //     ImGuiTableFlags_Borders | ImGuiTableFlags_ScrollY,
+        //     ImVec2(0, 160))) {
+        //     for (int r = 0; r < ROWS; r++) {
+        //         ImGui::TableNextRow();
+        //         for (int c = 0; c < COLS; c++) {
+        //             ImGui::TableSetColumnIndex(c);
+        //             ImGui::Text("%.2f", matrix[r][c]);
+        //         }
+        //     }
+        //     ImGui::EndTable();
+        // }
 
         ImGui::Spacing();
         ImGui::Text("FPS: %.1f", io.Framerate);

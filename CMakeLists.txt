@@ -8,6 +8,7 @@ set(SOURCES
     ${SRC_DIR}/main.cpp
     ${SRC_DIR}/glad.c
     ${SRC_DIR}/Shader.cpp
+    ${SRC_DIR}/dielectric_breakdown.cpp
     ${IMGUI_DIR}/imgui.cpp
     ${IMGUI_DIR}/imgui_demo.cpp
     ${IMGUI_DIR}/imgui_draw.cpp

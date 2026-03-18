@@ -14,12 +14,12 @@ class Cluster {
 private:
     int STEPS = 2000;
     double ETA = 1.25;
-    int ITER = 50;
+    int ITER = 5;
     
     std::vector<std::vector<Cell>> grid;
     int  (&arr)[N][N];
     int cx, cy;
-    std::mt19937 rng{42};
+    std::mt19937 rng{45};
     std::uniform_real_distribution<double> dist{0.0, 1.0};
 
 public:
@@ -91,7 +91,6 @@ public:
     }
 
     void compute() {
-        init();
         std::cout << "computing growth steps...\n";
         for (int i = 0; i < STEPS; ++i) {
             std::cout << "Step " << i+1 << "/" << STEPS << "\r" << std::flush;
