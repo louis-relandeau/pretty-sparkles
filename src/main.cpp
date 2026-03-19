@@ -11,7 +11,7 @@
 #include <cmath>
 
 #include "Shader.hpp"
-#include "dielectric_breakdown.cpp"
+#include "ClusterDBM.hpp"
 
 // Window
 int WIN_W = 1100;
@@ -25,8 +25,8 @@ void framebufferSizeCallback(GLFWwindow* /*window*/, int width, int height) {
 }
 
 
-constexpr int N = 1000;  // Compile-time constant
-int arr[N][N];
+constexpr int N = 300;  // Compile-time constant
+std::vector<int> arr(N*N, 0);
 
 // Matrix data
 const int ROWS = N;
@@ -44,14 +44,14 @@ void fillMatrix() {
         for (int c = 0; c < COLS; c++) {
             // float x = (float)c / COLS * 6.28f * freqX;
             // float y = (float)r / ROWS * 6.28f * freqY;
-            matrix[r][c] = arr[r][c];
+            matrix[r][c] = arr[r*COLS+c];
         }
 }
 
 
 int main() {
     
-    Cluster<N> cluster(arr);  // Pass the array
+    Cluster cluster(arr, N);
     cluster.init();
     // cluster.print();
 
