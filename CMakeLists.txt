@@ -3,6 +3,7 @@ project(pretty-sparkles)
 
 set(IMGUI_DIR imgui)
 set(SRC_DIR src)
+add_subdirectory(glfw)
 
 set(SOURCES
     ${SRC_DIR}/main.cpp
@@ -27,16 +28,11 @@ target_include_directories(pretty-sparkles PRIVATE
     ${CMAKE_SOURCE_DIR}/include
 )
 
-# Find GLFW
-find_package(PkgConfig REQUIRED)
-pkg_check_modules(GLFW REQUIRED glfw3)
-
 # Link libraries
 target_link_libraries(pretty-sparkles PRIVATE
-    ${GLFW_LIBRARIES}
-    ${OPENGL_gl_LIBRARY}
+    glfw
     GL
 )
 
 
-target_compile_options(pretty-sparkles PRIVATE -std=c++11 -g -Wall -Wformat)
+target_compile_options(pretty-sparkles PRIVATE -g -Wall -Wformat)
