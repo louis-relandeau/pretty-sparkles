@@ -17,9 +17,8 @@ class Cluster {
 private:
     int STEPS = 2000;
     double ETA = 1.25;
-    int ITER = 100;
 
-    std::vector<int>& arr;
+    std::vector<float>& arr;
     int N;
     int cx, cy;
     std::vector<Cell> grid;
@@ -27,14 +26,14 @@ private:
     std::mt19937 rng;
     std::uniform_real_distribution<double> dist;
 
-    void solveLaplace();
+    void solveLaplace(size_t ITER);
     std::vector<Point> getCandidates();
     Point pick(const std::vector<Point>& cands);
 public:
-    Cluster(std::vector<int>& arr, int N);
+    Cluster(std::vector<float>& arr, int N);
 
     void init();
-    void step();
+    void step(size_t ITER);
     void compute();
     void print();
 };

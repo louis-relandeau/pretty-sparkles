@@ -14,7 +14,7 @@
 #include "ClusterDBM.hpp"
 
 // Window
-int WIN_W = 1100;
+int WIN_W = 800;
 int WIN_H = 800;
 
 // Called by GLFW whenever the framebuffer is resized
@@ -26,7 +26,7 @@ void framebufferSizeCallback(GLFWwindow* /*window*/, int width, int height) {
 
 
 constexpr int N = 300;  // Compile-time constant
-std::vector<int> arr(N*N, 0);
+std::vector<float> arr(N*N, 0);
 
 // Matrix data
 const int ROWS = N;
@@ -34,9 +34,10 @@ const int COLS = N;
 float matrix[ROWS][COLS];
 
 // UI-controlled parameters
+static int laplaceIteration = 20;
 static float freqX    = 1.0f;
 static float freqY    = 1.0f;
-static bool  animate  = false;
+static bool  animate  = true;
 static float time_val = 0.0f;
 
 void fillMatrix() {
@@ -128,7 +129,7 @@ int main() {
 
     // Render loop
     while (!glfwWindowShouldClose(window)) {
-        cluster.step();
+        cluster.step(laplaceIteration);
 
         glfwPollEvents();
         if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
@@ -154,7 +155,9 @@ int main() {
 
         ImGui::SeparatorText("Colormap");
         ImGui::Combo("##cmap", &colormapIdx, colormapNames, IM_ARRAYSIZE(colormapNames));
-
+        if (ImGui::Button("RESET")) {
+            cluster.init();
+        }
         ImGui::SeparatorText("Filter");
         if (ImGui::Checkbox("Smooth interpolation", &smoothFilter)) {
             GLint f = smoothFilter ? GL_LINEAR : GL_NEAREST;
@@ -163,10 +166,9 @@ int main() {
             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, f);
         }
 
-        ImGui::SeparatorText("Wave parameters");
+        ImGui::SeparatorText("Simulation parameters");
         bool changed = false;
-        changed |= ImGui::SliderFloat("Freq X", &freqX, 0.1f, 5.0f);
-        changed |= ImGui::SliderFloat("Freq Y", &freqY, 0.1f, 5.0f);
+        changed |= ImGui::SliderInt("laplace iterations", &laplaceIteration, 5, 100);
         if (changed && !animate) {
             fillMatrix();
             glBindTexture(GL_TEXTURE_2D, tex);

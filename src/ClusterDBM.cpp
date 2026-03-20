@@ -5,7 +5,7 @@
 #include <random>
 #include <iostream>
 
-Cluster::Cluster(std::vector<int>& arr, int N)
+Cluster::Cluster(std::vector<float>& arr, int N)
         : arr(arr), N(N), cx(N/2), cy(N/2),
           grid(std::vector<Cell>(N*N)),
           rng(45), dist(0.0, 1.0) {};
@@ -20,7 +20,13 @@ void Cluster::init() {
                 grid[i*N+j].f = 1.0;
                 grid[i*N+j].boundary = true;
                 arr[i*N+j] = 1;
+            } else {
+                grid[i*N+j].f = 0;
+                grid[i*N+j].boundary = false;
+                arr[i*N+j] = 0;
             }
+            grid[i*N+j].cluster = false;
+
         }
     }
     grid[cx*N+cy].cluster = true;
@@ -28,7 +34,7 @@ void Cluster::init() {
     arr[cx*N+cy] = 1;
 }
 
-void Cluster::solveLaplace() {
+void Cluster::solveLaplace(size_t ITER) {
     for (int it = 0; it < ITER; ++it)
         for (int i = 1; i < N-1; ++i)
             for (int j = 1; j < N-1; ++j)
@@ -37,14 +43,19 @@ void Cluster::solveLaplace() {
                                             grid[i*N+(j-1)].f + grid[i*N+(j+1)].f);
 }
 
+// TODO instead of looking  at all of them only look at the points part of the cluster
 std::vector<Point> Cluster::getCandidates() {
     std::vector<Point> out;
     for (int i = 1; i < N-1; ++i)
-        for (int j = 1; j < N-1; ++j)
-            if (!grid[i*N+j].cluster && 
-                (grid[(i-1)*N+j].cluster || grid[(i+1)*N+j].cluster || 
-                    grid[i*N+(j-1)].cluster || grid[i*N+(j+1)].cluster))
-                out.push_back({i,j});
+        for (int j = 1; j < N-1; ++j){
+            if (!grid[i*N+j].cluster){
+                arr[i*N+j] = grid[i*N+j].f;
+                if (grid[(i-1)*N+j].cluster || grid[(i+1)*N+j].cluster || 
+                        grid[i*N+(j-1)].cluster || grid[i*N+(j+1)].cluster)
+                    out.push_back({i,j});
+            }
+        }
+            
     return out;
 }
 
@@ -63,8 +74,8 @@ Point Cluster::pick(const std::vector<Point>& cands) {
     return cands.back();
 }
 
-void Cluster::step() {
-    solveLaplace();
+void Cluster::step(size_t ITER = 10) {
+    solveLaplace(ITER);
     auto cands = getCandidates();
     if (cands.empty()) return;
     auto p = pick(cands);
