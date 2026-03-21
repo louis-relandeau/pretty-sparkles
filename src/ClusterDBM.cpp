@@ -14,7 +14,7 @@ Cluster::Cluster(std::vector<float>& arr, int N)
           grid(std::vector<Cell>(N*N)),
           rng(45), dist(0.0, 1.0) {};
 
-void Cluster::init() {
+void Cluster::init(bool forceRecompute) {
     int R = N / 2 - 2;
     for (int i = 0; i < N; ++i) {
         for (int j = 0; j < N; ++j) {
@@ -37,7 +37,7 @@ void Cluster::init() {
     grid[cx*N+cy].f = 0.0;
     arr[cx*N+cy] = 1;
 
-    checkForFieldFile();
+    checkForFieldFile(forceRecompute);
 }
 
 uint64_t Cluster::hashFieldF() {
@@ -55,16 +55,20 @@ uint64_t Cluster::hashFieldF() {
     return hash;
 }
 
-void Cluster::checkForFieldFile() {
+void Cluster::checkForFieldFile(bool forceRecompute) {
     // Hash the grid field to encode size and boundary conditions, so we can reuse it across runs
     std::string hash = std::to_string(hashFieldF());
     std::string filename = "fields/field_" + hash + ".bin";
-    if (std::filesystem::exists(filename)) {
+    if (std::filesystem::exists(filename) && !forceRecompute) {
         std::cout << "Loading field from " << filename << "\n";
         std::ifstream in(filename, std::ios::binary);
         in.read((char*)grid.data(), grid.size() * sizeof(Cell));
     } else {
-        std::cout << "No field file found, initializing...\n";
+        if (forceRecompute) {
+            std::cout << "Force recompute enabled, ignoring existing field file if any.\n";
+        } else {
+            std::cout << "No field file found at " << filename << ", initializing...\n";
+        }
         initializeField();
         std::ofstream out(filename, std::ios::binary);
         out.write((char*)grid.data(), grid.size() * sizeof(Cell));
@@ -227,26 +231,11 @@ Point Cluster::pick(const std::vector<Point>& cands) {
 void Cluster::step(size_t ITER = 10) {
     solveLaplace(ITER);
     auto cands = getCandidates();
-    if (cands.empty()) return;
+    if (cands.empty()) {
+        return;
+    }
     auto p = pick(cands);
     grid[p.x*N+p.y].cluster = true;
     grid[p.x*N+p.y].f = 0.0;
     arr[p.x*N+p.y] = 1;
-}
-
-void Cluster::compute() {
-    init();
-    std::cout << "Computing growth steps...\n";
-    for (int i = 0; i < STEPS; ++i) {
-        std::cout << "Step " << i+1 << "/" << STEPS << "\r" << std::flush;
-        step();
-    }
-}
-
-void Cluster::print() {
-    for (int j = 0; j < N; ++j) {
-        for (int i = 0; i < N; ++i)
-            std::cout << (grid[i*N+j].cluster ? "#" : ".");
-        std::cout << "\n";
-    }
 }

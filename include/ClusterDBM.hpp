@@ -28,7 +28,7 @@ private:
     std::mt19937 rng;
     std::uniform_real_distribution<double> dist;
 
-    void checkForFieldFile();
+    void checkForFieldFile(bool forceRecompute);
     uint64_t hashFieldF();
     void initializeField();
     bool isFixed(int i, int j);
@@ -38,11 +38,10 @@ private:
     void solveLaplace(size_t ITER);
     std::vector<Point> getCandidates();
     Point pick(const std::vector<Point>& cands);
+
 public:
     Cluster(std::vector<float>& arr, int N);
 
-    void init();
+    void init(bool forceRecompute = false);
     void step(size_t ITER);
-    void compute();
-    void print();
 };
