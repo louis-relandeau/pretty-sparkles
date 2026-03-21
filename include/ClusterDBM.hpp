@@ -3,6 +3,7 @@
 #include <vector>
 #include <random>
 #include <optional>
+#include <cstdint>
 
 struct Cell {
     double f;
@@ -27,6 +28,8 @@ private:
     std::mt19937 rng;
     std::uniform_real_distribution<double> dist;
 
+    void checkForFieldFile();
+    uint64_t hashFieldF();
     void initializeField();
     // If nullopt, point is either boundary or cluster
     std::optional<double> computePointLaplace(Point p);

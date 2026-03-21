@@ -6,3 +6,5 @@ sudo apt-get install libglfw3-dev
 sudo apt install libxkbcommon-dev
 
 chmod +x compile.sh
+
+mkdir -p fields

@@ -4,6 +4,9 @@
 #include <cmath>
 #include <random>
 #include <iostream>
+#include <fstream>
+#include <filesystem>
+#include <cstring>
 
 Cluster::Cluster(std::vector<float>& arr, int N)
         : arr(arr), N(N), cx(N/2), cy(N/2),
@@ -33,7 +36,38 @@ void Cluster::init() {
     grid[cx*N+cy].f = 0.0;
     arr[cx*N+cy] = 1;
 
-    initializeField();
+    checkForFieldFile();
+}
+
+uint64_t Cluster::hashFieldF() {
+    uint64_t hash = 1469598103934665603ULL; // FNV offset basis
+
+    for (const auto& cell : grid) {
+        static_assert(sizeof(double) == 8);
+        uint64_t bits;
+        std::memcpy(&bits, &cell.f, sizeof(double));
+
+        hash ^= bits;
+        hash *= 1099511628211ULL; // FNV prime
+    }
+
+    return hash;
+}
+
+void Cluster::checkForFieldFile() {
+    // Hash the grid field to encode size and boundary conditions, so we can reuse it across runs
+    std::string hash = std::to_string(hashFieldF());
+    std::string filename = "fields/field_" + hash + ".bin";
+    if (std::filesystem::exists(filename)) {
+        std::cout << "Loading field from " << filename << "\n";
+        std::ifstream in(filename, std::ios::binary);
+        in.read((char*)grid.data(), grid.size() * sizeof(Cell));
+    } else {
+        std::cout << "No field file found, initializing...\n";
+        initializeField();
+        std::ofstream out(filename, std::ios::binary);
+        out.write((char*)grid.data(), grid.size() * sizeof(Cell));
+    }
 }
 
 void Cluster::initializeField() {
