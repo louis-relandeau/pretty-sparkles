@@ -4,14 +4,17 @@
 #include <functional>
 #include <vector>
 #include <iomanip>
+#include <optional>
 
 #include "ClusterDBM.hpp"
 
-double measureTime(const std::function<void()>& func) {
+double measureTime(const std::function<void()>& func, bool quiet = true) {
     auto start = std::chrono::high_resolution_clock::now();
     // Redirect any output from func to /dev/null to avoid polluting benchmark results
     std::streambuf* orig_buf = std::cout.rdbuf();
-    std::cout.rdbuf(nullptr);
+    if (quiet) {
+        std::cout.rdbuf(nullptr);
+    }
     func();
     // Restore original buffer
     std::cout.rdbuf(orig_buf);
@@ -23,7 +26,7 @@ double measureTime(const std::function<void()>& func) {
 
 struct BenchmarkResult {
     std::string label;
-    double time;
+    std::optional<double> time;
 };
 
 void printResults(std::string header, const std::vector<BenchmarkResult>& results) {
@@ -40,7 +43,13 @@ void printResults(std::string header, const std::vector<BenchmarkResult>& result
 
     for (auto& r : results) {
         std::cout << "| " << std::setw(max_label) << std::left << r.label
-                  << " | " << std::setw(8) << std::fixed << std::setprecision(5) << r.time << " |\n";
+                  << " | ";
+        if (r.time.has_value()) {
+            std::cout << std::setw(8) << std::fixed << std::setprecision(5) << r.time.value();
+        } else {
+            std::cout << "   N/A   ";
+        }
+        std::cout << " |\n";
     }
 
     std::cout << "+-" << std::string(max_label, '-') << "-+----------+\n";
@@ -48,6 +57,7 @@ void printResults(std::string header, const std::vector<BenchmarkResult>& result
 
 int main() {
     std::vector<BenchmarkResult> results;
+    bool quiet = true;
     
     /// ========== ClusterDBM Benchmark ==========
     
@@ -65,14 +75,14 @@ int main() {
     })});
 
     // Measure time to N steps
-    int numSteps = 50;
+    int numSteps = 10;
     results.push_back({"Time for " + std::to_string(numSteps) + " steps", measureTime([&]() {
         for (int i = 0; i < numSteps; ++i) {
-            cluster.step(100 /*Laplace iterations*/);
+            cluster.step();
         }
-    })});
-    results.push_back({" |->FPS (!NOT IN SECONDS!)", numSteps / results.back().time});
-    std::string header = "ClusterDBM Benchmark (N=" + std::to_string(N) + ", Laplace iterations=100)";
+    }, quiet)});
+    results.push_back({" |->FPS: " + std::to_string(numSteps / results.back().time.value()), std::nullopt});
+    std::string header = "ClusterDBM Benchmark (N=" + std::to_string(N) + ")";
     printResults(header, results);
     results.clear();
 

@@ -30,12 +30,12 @@ private:
 
     void checkForFieldFile(bool forceRecompute);
     uint64_t hashFieldF();
-    void initializeField();
+    void computeFieldMultiscale();
     bool isFixed(int i, int j);
     // If nullopt, point is either boundary or cluster
     std::optional<double> computePointLaplace(Point p, int step);
     void interpolateLevel(int step);
-    void solveLaplace(size_t ITER);
+    void solveLaplace();
     std::vector<Point> getCandidates();
     Point pick(const std::vector<Point>& cands);
 
@@ -43,5 +43,5 @@ public:
     Cluster(std::vector<float>& arr, int N);
 
     void init(bool forceRecompute = false);
-    void step(size_t ITER);
+    void step();
 };

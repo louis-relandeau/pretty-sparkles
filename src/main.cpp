@@ -37,7 +37,6 @@ const int COLS = N;
 float matrix[ROWS][COLS];
 
 // UI-controlled parameters
-static int laplaceIteration = 20;
 static bool  animate  = true;
 static float time_val = 0.0f;
 
@@ -131,7 +130,7 @@ int main() {
 
     // Render loop
     while (!glfwWindowShouldClose(window)) {
-        cluster.step(laplaceIteration);
+        cluster.step();
 
         glfwPollEvents();
         if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
@@ -169,9 +168,7 @@ int main() {
         }
 
         ImGui::SeparatorText("Simulation parameters");
-        bool changed = false;
-        changed |= ImGui::SliderInt("laplace iterations", &laplaceIteration, 5, 100);
-        if (changed && !animate) {
+        if (!animate) {
             fillMatrix();
             glBindTexture(GL_TEXTURE_2D, tex);
             glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, COLS, ROWS, GL_RED, GL_FLOAT, matrix);

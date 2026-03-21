@@ -69,12 +69,12 @@ void Cluster::checkForFieldFile(bool forceRecompute) {
         } else {
             std::cout << "No field file found at " << filename << ", initializing...\n";
         }
-        initializeField();
+        computeFieldMultiscale();
         std::ofstream out(filename, std::ios::binary);
         out.write((char*)grid.data(), grid.size() * sizeof(Cell));
     }
 }
-void Cluster::initializeField() {
+void Cluster::computeFieldMultiscale() {
     int maxStep = 1;
 
     // find largest power of two ≤ N
@@ -85,8 +85,6 @@ void Cluster::initializeField() {
     size_t total_iters = 0;
 
     for (int step = maxStep; step >= 1; step /= 2) {
-
-        std::cout << " Solving level step = " << step << ": ";
 
         double max_diff;
         size_t iter = 0;
@@ -116,12 +114,12 @@ void Cluster::initializeField() {
             }
 
             std::cout
-                << "   step=" << step
-                << " iter=" << iter
-                << " diff=" << max_diff
+                << " Solving level step = " << step
+                << ": iter=" << iter 
+                << ", max_diff=" << max_diff
                 << "\r" << std::flush;
 
-        } while (max_diff > 1e-5);
+        } while (max_diff > 1e-3);
 
         std::cout << "\n";
 
@@ -184,16 +182,8 @@ void Cluster::interpolateLevel(int step) {
     }
 }
 
-void Cluster::solveLaplace(size_t ITER) {
-    for (int it = 0; it < ITER; ++it) {
-        for (int i = 1; i < N-1; ++i) {
-            for (int j = 1; j < N-1; ++j) {
-                if (auto field = computePointLaplace({i,j}, 1)) {
-                    grid[i*N+j].f = *field;
-                }
-            }
-        }
-    }
+void Cluster::solveLaplace() {
+    computeFieldMultiscale();
 }
 
 // TODO instead of looking  at all of them only look at the points part of the cluster
@@ -228,8 +218,8 @@ Point Cluster::pick(const std::vector<Point>& cands) {
     return cands.back();
 }
 
-void Cluster::step(size_t ITER = 10) {
-    solveLaplace(ITER);
+void Cluster::step() {
+    solveLaplace();
     auto cands = getCandidates();
     if (cands.empty()) {
         return;

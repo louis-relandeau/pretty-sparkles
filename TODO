@@ -1,4 +1,4 @@
-Benchmark -> Speed up
-Save init field for config (N, boundary conditions)
 Fix boundaries/gradient thing -> make a geometry, a field and growth cluster
 Integrate openMP
+Recompute the laplace from the point until the field stops changing in a sort of circular motion
+Check out Gauss–Seidel
