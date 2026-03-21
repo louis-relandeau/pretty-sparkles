@@ -7,6 +7,7 @@
 #include <fstream>
 #include <filesystem>
 #include <cstring>
+#include <cassert>
 
 Cluster::Cluster(std::vector<float>& arr, int N)
         : arr(arr), N(N), cx(N/2), cy(N/2),
@@ -69,39 +70,121 @@ void Cluster::checkForFieldFile() {
         out.write((char*)grid.data(), grid.size() * sizeof(Cell));
     }
 }
-
 void Cluster::initializeField() {
-    // Solve laplace until convergence
-    double max_diff;
-    size_t iter_count = 0;
-    do {
-        max_diff = 0.0;
-        iter_count++;
-        for (int i = 1; i < N-1; ++i) {
-            for (int j = 1; j < N-1; ++j) {
-                if (auto field = computePointLaplace({i,j})) {
-                    max_diff = std::max(max_diff, std::abs(*field - grid[i*N+j].f));
-                    grid[i*N+j].f = *field;
+    int maxStep = 1;
+
+    // find largest power of two ≤ N
+    while (maxStep * 2 < N) {
+        maxStep *= 2;
+    }
+
+    size_t total_iters = 0;
+
+    for (int step = maxStep; step >= 1; step /= 2) {
+
+        std::cout << " Solving level step = " << step << ": ";
+
+        double max_diff;
+        size_t iter = 0;
+
+        do {
+            max_diff = 0.0;
+            iter++;
+            total_iters++;
+
+            for (int i = step; i < N - step; i += step) {
+                for (int j = step; j < N - step; j += step) {
+
+                    auto field = computePointLaplace({i, j}, step);
+                    if (!field) {
+                        continue;
+                    }
+
+                    double old = grid[i*N + j].f;
+                    double diff = std::abs(*field - old);
+
+                    if (diff > max_diff) {
+                        max_diff = diff;
+                    }
+
+                    grid[i*N + j].f = *field;
                 }
             }
+
+            std::cout
+                << "   step=" << step
+                << " iter=" << iter
+                << " diff=" << max_diff
+                << "\r" << std::flush;
+
+        } while (max_diff > 1e-5);
+
+        std::cout << "\n";
+
+        if (step > 1) {
+            interpolateLevel(step);
         }
-        std::cout << "Initializing field: iteration " << iter_count << ", max diff = " << max_diff << "\r" << std::flush;
-    } while (max_diff > 1e-5);
+    }
+
+    std::cout << " Total iterations: " << total_iters << "\n";
 }
 
-std::optional<double> Cluster::computePointLaplace(Point p) {
-    if (grid[p.x*N+p.y].boundary || grid[p.x*N+p.y].cluster) {
+bool Cluster::isFixed(int i, int j) {
+    return grid[i*N+j].boundary || grid[i*N+j].cluster;
+}
+
+std::optional<double> Cluster::computePointLaplace(Point p, int step) {
+    if (isFixed(p.x, p.y)) {
         return std::nullopt;
     }
-    return 0.25 * (grid[(p.x-1)*N+p.y].f + grid[(p.x+1)*N+p.y].f + 
-                                    grid[p.x*N+(p.y-1)].f + grid[p.x*N+(p.y+1)].f);
+    double v = grid[(p.x-step)*N+p.y].f + 
+               grid[(p.x+step)*N+p.y].f + 
+               grid[p.x*N+(p.y-step)].f +
+               grid[p.x*N+(p.y+step)].f;  
+
+
+    return 0.25 * v;
+}
+
+void Cluster::interpolateLevel(int step) {
+    int half = step / 2;
+
+    for (int i = 0; i < N - step; i += step) {
+        for (int j = 0; j < N - step; j += step) {
+
+            int i0 = i;
+            int j0 = j;
+            int i1 = i + step;
+            int j1 = j + step;
+
+            int im = i + half;
+            int jm = j + half;
+
+            if (!isFixed(im, j0))
+                grid[im*N + j0].f =
+                    0.5 * (grid[i0*N + j0].f + grid[i1*N + j0].f);
+
+            if (!isFixed(i0, jm))
+                grid[i0*N + jm].f =
+                    0.5 * (grid[i0*N + j0].f + grid[i0*N + j1].f);
+
+            if (!isFixed(im, jm))
+                grid[im*N + jm].f =
+                    0.25 * (
+                        grid[i0*N + j0].f +
+                        grid[i1*N + j0].f +
+                        grid[i0*N + j1].f +
+                        grid[i1*N + j1].f
+                    );
+        }
+    }
 }
 
 void Cluster::solveLaplace(size_t ITER) {
     for (int it = 0; it < ITER; ++it) {
         for (int i = 1; i < N-1; ++i) {
             for (int j = 1; j < N-1; ++j) {
-                if (auto field = computePointLaplace({i,j})) {
+                if (auto field = computePointLaplace({i,j}, 1)) {
                     grid[i*N+j].f = *field;
                 }
             }
