@@ -9,9 +9,12 @@
 
 #include <iostream>
 #include <cmath>
+#include <filesystem>
 
 #include "Shader.hpp"
 #include "ClusterDBM.hpp"
+
+std::filesystem::path root = REPO_ROOT;
 
 // Window
 int WIN_W = 800;
@@ -71,7 +74,10 @@ int main() {
     if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress)) {
         std::cerr << "GLAD init failed\n"; return -1;
     }
-    Shader shader("../Shaders/vertexShader.glsl", "../Shaders/fragmentShader.glsl");
+    Shader shader(
+        (root / "Shaders/vertexShader.glsl").string(),
+        (root / "Shaders/fragmentShader.glsl").string()
+    );
 
     // ImGui setup — must happen after OpenGL context is current
     IMGUI_CHECKVERSION();

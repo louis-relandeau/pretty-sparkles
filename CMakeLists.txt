@@ -34,5 +34,8 @@ target_link_libraries(pretty-sparkles PRIVATE
     GL
 )
 
-
 target_compile_options(pretty-sparkles PRIVATE -g -Wall -Wformat)
+
+target_compile_definitions(pretty-sparkles PRIVATE
+    REPO_ROOT="${CMAKE_SOURCE_DIR}"
+)
