@@ -38,16 +38,12 @@ float matrix[ROWS][COLS];
 
 // UI-controlled parameters
 static int laplaceIteration = 20;
-static float freqX    = 1.0f;
-static float freqY    = 1.0f;
 static bool  animate  = true;
 static float time_val = 0.0f;
 
 void fillMatrix() {
     for (int r = 0; r < ROWS; r++)
         for (int c = 0; c < COLS; c++) {
-            // float x = (float)c / COLS * 6.28f * freqX;
-            // float y = (float)r / ROWS * 6.28f * freqY;
             matrix[r][c] = arr[r*COLS+c];
         }
 }

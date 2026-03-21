@@ -2,6 +2,7 @@
 
 #include <vector>
 #include <random>
+#include <optional>
 
 struct Cell {
     double f;
@@ -26,6 +27,9 @@ private:
     std::mt19937 rng;
     std::uniform_real_distribution<double> dist;
 
+    void initializeField();
+    // If nullopt, point is either boundary or cluster
+    std::optional<double> computePointLaplace(Point p);
     void solveLaplace(size_t ITER);
     std::vector<Point> getCandidates();
     Point pick(const std::vector<Point>& cands);

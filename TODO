@@ -1,4 +1,4 @@
-Visualize electric field
 Benchmark -> Speed up
-Make header file for dielectric_breakdown
-Define conventions
+Save init field for config (N, boundary conditions)
+Fix boundaries/gradient thing -> make a geometry, a field and growth cluster
+Integrate openMP

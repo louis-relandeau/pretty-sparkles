@@ -32,29 +32,62 @@ void Cluster::init() {
     grid[cx*N+cy].cluster = true;
     grid[cx*N+cy].f = 0.0;
     arr[cx*N+cy] = 1;
+
+    initializeField();
+}
+
+void Cluster::initializeField() {
+    // Solve laplace until convergence
+    double max_diff;
+    size_t iter_count = 0;
+    do {
+        max_diff = 0.0;
+        iter_count++;
+        for (int i = 1; i < N-1; ++i) {
+            for (int j = 1; j < N-1; ++j) {
+                if (auto field = computePointLaplace({i,j})) {
+                    max_diff = std::max(max_diff, std::abs(*field - grid[i*N+j].f));
+                    grid[i*N+j].f = *field;
+                }
+            }
+        }
+        std::cout << "Initializing field: iteration " << iter_count << ", max diff = " << max_diff << "\r" << std::flush;
+    } while (max_diff > 1e-5);
+}
+
+std::optional<double> Cluster::computePointLaplace(Point p) {
+    if (grid[p.x*N+p.y].boundary || grid[p.x*N+p.y].cluster) {
+        return std::nullopt;
+    }
+    return 0.25 * (grid[(p.x-1)*N+p.y].f + grid[(p.x+1)*N+p.y].f + 
+                                    grid[p.x*N+(p.y-1)].f + grid[p.x*N+(p.y+1)].f);
 }
 
 void Cluster::solveLaplace(size_t ITER) {
-    for (int it = 0; it < ITER; ++it)
-        for (int i = 1; i < N-1; ++i)
-            for (int j = 1; j < N-1; ++j)
-                if (!grid[i*N+j].boundary && !grid[i*N+j].cluster)
-                    grid[i*N+j].f = 0.25 * (grid[(i-1)*N+j].f + grid[(i+1)*N+j].f + 
-                                            grid[i*N+(j-1)].f + grid[i*N+(j+1)].f);
+    for (int it = 0; it < ITER; ++it) {
+        for (int i = 1; i < N-1; ++i) {
+            for (int j = 1; j < N-1; ++j) {
+                if (auto field = computePointLaplace({i,j})) {
+                    grid[i*N+j].f = *field;
+                }
+            }
+        }
+    }
 }
 
 // TODO instead of looking  at all of them only look at the points part of the cluster
 std::vector<Point> Cluster::getCandidates() {
     std::vector<Point> out;
-    for (int i = 1; i < N-1; ++i)
-        for (int j = 1; j < N-1; ++j){
-            if (!grid[i*N+j].cluster){
+    for (int i = 1; i < N-1; ++i) {
+        for (int j = 1; j < N-1; ++j) {
+            if (!grid[i*N+j].cluster) {
                 arr[i*N+j] = grid[i*N+j].f;
                 if (grid[(i-1)*N+j].cluster || grid[(i+1)*N+j].cluster || 
                         grid[i*N+(j-1)].cluster || grid[i*N+(j+1)].cluster)
                     out.push_back({i,j});
             }
         }
+    }
             
     return out;
 }
