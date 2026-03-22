@@ -98,19 +98,19 @@ void Cluster::computeFieldMultiscale() {
             for (int i = step; i < N - step; i += step) {
                 for (int j = step; j < N - step; j += step) {
 
-                    auto field = computePointLaplace({i, j}, step);
-                    if (!field) {
+                    double field;
+                    if (!computePointLaplace({i, j}, step, field)) {
                         continue;
                     }
 
                     double old = grid[i*N + j].f;
-                    double diff = std::abs(*field - old);
+                    double diff = std::abs(field - old);
 
                     if (diff > max_diff) {
                         max_diff = diff;
                     }
 
-                    grid[i*N + j].f = *field;
+                    grid[i*N + j].f = field;
                 }
             }
 
@@ -126,17 +126,25 @@ bool Cluster::isFixed(int i, int j) {
     return grid[i*N+j].boundary || grid[i*N+j].cluster;
 }
 
-std::optional<double> Cluster::computePointLaplace(Point p, int step) {
-    if (isFixed(p.x, p.y)) {
-        return std::nullopt;
-    }
-    double v = grid[(p.x-step)*N+p.y].f + 
-               grid[(p.x+step)*N+p.y].f + 
-               grid[p.x*N+(p.y-step)].f +
-               grid[p.x*N+(p.y+step)].f;  
+bool Cluster::computePointLaplace(const Point& p, int step, double& out) {
+    const Cell* g = grid.data();
+    int x = p.x;
+    int y = p.y;
+    int base = x * N + y;
 
+    const Cell& c = g[base];
+    if (c.boundary || c.cluster)
+        return false;
 
-    return 0.25 * v;
+    int stride = step * N;
+
+    double v = g[base - stride].f +
+               g[base + stride].f +
+               g[base - step].f +
+               g[base + step].f;
+
+    out = 0.25 * v;
+    return true;
 }
 
 void Cluster::interpolateLevel(int step) {

@@ -5,4 +5,5 @@ Possible DM cluster opimizations:
     Red–Black Gauss–Seidel to split into two threads
     Successive over relaxation
     Multigrid v-cycle
-Use blender to create geometry and assign boundary,
+Use blender to create geometry and assign boundary
+Improve isFixed everywhere

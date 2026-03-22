@@ -2,7 +2,6 @@
 
 #include <vector>
 #include <random>
-#include <optional>
 #include <cstdint>
 
 struct Cell {
@@ -33,8 +32,7 @@ private:
     uint64_t hashFieldF();
     void computeFieldMultiscale();
     bool isFixed(int i, int j);
-    // If nullopt, point is either boundary or cluster
-    std::optional<double> computePointLaplace(Point p, int step);
+    bool computePointLaplace(const Point& p, int step, double& out);
     void interpolateLevel(int step);
     void solveLaplace();
     std::vector<Point> getCandidates();

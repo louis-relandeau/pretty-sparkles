@@ -1,3 +1,4 @@
 #!/bin/bash
 
-cmake -S . -B build && cmake --build build --config Debug
+cmake -S . -B build
+cmake --build build --config Debug
