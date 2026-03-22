@@ -19,6 +19,7 @@ private:
     double ETA = 1.25;
 
     std::vector<float>& arr;
+    std::vector<float>& arc;
     int N;
     int cx, cy;
     std::vector<Cell> grid;
@@ -30,7 +31,7 @@ private:
     std::vector<Point> getCandidates();
     Point pick(const std::vector<Point>& cands);
 public:
-    Cluster(std::vector<float>& arr, int N);
+    Cluster(std::vector<float>& arr, std::vector<float>& arc, int N);
 
     void init();
     void step(size_t ITER);

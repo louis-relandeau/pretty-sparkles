@@ -10,6 +10,7 @@ set(SOURCES
     ${SRC_DIR}/glad.c
     ${SRC_DIR}/Shader.cpp
     ${SRC_DIR}/ClusterDBM.cpp
+    ${SRC_DIR}/CircularShape.cpp
     ${IMGUI_DIR}/imgui.cpp
     ${IMGUI_DIR}/imgui_demo.cpp
     ${IMGUI_DIR}/imgui_draw.cpp
@@ -20,6 +21,8 @@ set(SOURCES
 )
 
 add_executable(pretty-sparkles ${SOURCES})
+
+find_package(OpenMP REQUIRED)
 
 # Include directories
 target_include_directories(pretty-sparkles PRIVATE
@@ -32,6 +35,7 @@ target_include_directories(pretty-sparkles PRIVATE
 target_link_libraries(pretty-sparkles PRIVATE
     glfw
     GL
+    OpenMP::OpenMP_CXX
 )
 
 target_compile_options(pretty-sparkles PRIVATE -g -Wall -Wformat)

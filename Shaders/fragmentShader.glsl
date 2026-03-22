@@ -1,7 +1,10 @@
 #version 330 core
 in vec2 uv;
 out vec4 fragColor;
-uniform sampler2D uData;
+uniform sampler2D layer0;
+uniform sampler2D layer1;
+uniform sampler2D layer2;
+
 uniform int uColormap;   // 0 = viridis-like, 1 = heat, 2 = grayscale
 
 vec3 viridis(float t) {
@@ -19,10 +22,16 @@ vec3 heat(float t) {
 }
 
 void main() {
-    float val = texture(uData, uv).r;
+    float arc = texture(layer0, uv).r;
+    float geom = texture(layer1, uv).r;
+    float field = texture(layer2, uv).r;
+    vec3 arc_field;
     vec3 col;
-    if      (uColormap == 0) col = viridis(val);
-    else if (uColormap == 1) col = heat(val);
-    else                     col = vec3(val);
-    fragColor = vec4(col, 1.0);
+    if      (uColormap == 0) col = viridis(field);
+    else if (uColormap == 1) col = heat(field);
+    else                     col = vec3(field);
+
+    arc_field = vec3(mix(col, vec3(0.99, 0, 0.14), arc));
+    fragColor = vec4(mix(arc_field, vec3(0), geom), 1.0);
+    //
 }
