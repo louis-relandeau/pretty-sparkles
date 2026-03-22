@@ -74,6 +74,7 @@ void Cluster::checkForFieldFile(bool forceRecompute) {
         out.write((char*)grid.data(), grid.size() * sizeof(Cell));
     }
 }
+
 void Cluster::computeFieldMultiscale() {
     int maxStep = 1;
 
@@ -113,22 +114,12 @@ void Cluster::computeFieldMultiscale() {
                 }
             }
 
-            std::cout
-                << " Solving level step = " << step
-                << ": iter=" << iter 
-                << ", max_diff=" << max_diff
-                << "\r" << std::flush;
-
         } while (max_diff > 1e-3);
-
-        std::cout << "\n";
 
         if (step > 1) {
             interpolateLevel(step);
         }
     }
-
-    std::cout << " Total iterations: " << total_iters << "\n";
 }
 
 bool Cluster::isFixed(int i, int j) {
