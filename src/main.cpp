@@ -12,6 +12,9 @@
 
 #include "Shader.hpp"
 #include "ClusterDBM.hpp"
+#include "CircularShape.hpp"
+#include "Texture.hpp"
+
 
 // Window
 int WIN_W = 800;
@@ -27,33 +30,40 @@ void framebufferSizeCallback(GLFWwindow* /*window*/, int width, int height) {
 
 constexpr int N = 300;  // Compile-time constant
 std::vector<float> arr(N*N, 0);
+std::vector<float> geometry(N*N, 0);
+std::vector<float> arc(N*N, 0);
 
 // Matrix data
 const int ROWS = N;
 const int COLS = N;
 float matrix[ROWS][COLS];
+float field[ROWS][COLS];
+float circlular[ROWS][COLS];
 
 // UI-controlled parameters
 static int laplaceIteration = 20;
-static float freqX    = 1.0f;
-static float freqY    = 1.0f;
 static bool  animate  = true;
 static float time_val = 0.0f;
 
 void fillMatrix() {
+    
     for (int r = 0; r < ROWS; r++)
         for (int c = 0; c < COLS; c++) {
             // float x = (float)c / COLS * 6.28f * freqX;
             // float y = (float)r / ROWS * 6.28f * freqY;
-            matrix[r][c] = arr[r*COLS+c];
+            // circlular[r][c] = geometry[r*COLS+c];
+            // field[r][c] = arr[r*COLS+c];
+            // matrix[r][c] = arc[r*COLS+c];
         }
 }
 
 
 int main() {
     
-    Cluster cluster(arr, N);
+    Cluster cluster(arr, arc, N);
+    CircularShape circle(geometry, N);
     cluster.init();
+
     // cluster.print();
 
     // GLFW
@@ -84,7 +94,7 @@ int main() {
 
     // Quad geometry
     float verts[] = {
-        -1.0f, -1.0f,  0.0f, 0.0f,
+        -1.0f, -1.0f,  0.0f, 0.0f, // 2D vertex coordinate, 2D texture coordinate
          1.0f, -1.0f,  1.0f, 0.0f,
          1.0f,  1.0f,  1.0f, 1.0f,
         -1.0f,  1.0f,  0.0f, 1.0f,
@@ -107,20 +117,16 @@ int main() {
 
     // Texture
     fillMatrix();
-    GLuint tex;
-    glGenTextures(1, &tex);
-    glBindTexture(GL_TEXTURE_2D, tex);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_R32F, COLS, ROWS, 0, GL_RED, GL_FLOAT, matrix);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+    Texture tex0(arc, N);
+    Texture tex1(geometry, N);
+    Texture tex2(arr, N);
 
     // Shader
     shader.use();
-    GLint locData     = shader.getUniformLocation("uData");
+    glUniform1i(shader.getUniformLocation("layer0"), 0);
+    glUniform1i(shader.getUniformLocation("layer1"), 1);
+    glUniform1i(shader.getUniformLocation("layer2"), 2);
     GLint locColormap = shader.getUniformLocation("uColormap");
-    glUniform1i(locData, 0);
 
     // State driven by ImGui
     int  colormapIdx  = 0;
@@ -139,8 +145,9 @@ int main() {
         if (animate) {
             time_val += 0.02f;
             fillMatrix();
-            glBindTexture(GL_TEXTURE_2D, tex);
-            glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, COLS, ROWS, GL_RED, GL_FLOAT, matrix);
+            tex0.update();
+            tex1.update();
+            tex2.update();
         }
 
         // --- ImGui frame start ---
@@ -159,20 +166,21 @@ int main() {
             cluster.init();
         }
         ImGui::SeparatorText("Filter");
-        if (ImGui::Checkbox("Smooth interpolation", &smoothFilter)) {
-            GLint f = smoothFilter ? GL_LINEAR : GL_NEAREST;
-            glBindTexture(GL_TEXTURE_2D, tex);
-            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, f);
-            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, f);
-        }
+        // if (ImGui::Checkbox("Smooth interpolation", &smoothFilter)) {
+        //     GLint f = smoothFilter ? GL_LINEAR : GL_NEAREST;
+        //     glBindTexture(GL_TEXTURE_2D, tex0);
+        //     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, f);
+        //     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, f);
+        // }
 
         ImGui::SeparatorText("Simulation parameters");
         bool changed = false;
         changed |= ImGui::SliderInt("laplace iterations", &laplaceIteration, 5, 100);
         if (changed && !animate) {
             fillMatrix();
-            glBindTexture(GL_TEXTURE_2D, tex);
-            glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, COLS, ROWS, GL_RED, GL_FLOAT, matrix);
+            tex0.update();
+            tex1.update();
+            tex2.update();
         }
 
         ImGui::SeparatorText("Animation");
@@ -205,8 +213,10 @@ int main() {
 
         shader.use();
         glUniform1i(locColormap, colormapIdx);
-        glActiveTexture(GL_TEXTURE0);
-        glBindTexture(GL_TEXTURE_2D, tex);
+        tex0.bind();
+        tex1.bind();
+        tex2.bind();
+
         glBindVertexArray(VAO);
         glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
 
@@ -225,7 +235,6 @@ int main() {
     glDeleteVertexArrays(1, &VAO);
     glDeleteBuffers(1, &VBO);
     glDeleteBuffers(1, &EBO);
-    glDeleteTextures(1, &tex);
     glfwTerminate();
     return 0;
 }

@@ -5,8 +5,8 @@
 #include <random>
 #include <iostream>
 
-Cluster::Cluster(std::vector<float>& arr, int N)
-        : arr(arr), N(N), cx(N/2), cy(N/2),
+Cluster::Cluster(std::vector<float>& arr, std::vector<float>& arc, int N)
+        : arr(arr), arc(arc), N(N), cx(N/2), cy(N/2),
           grid(std::vector<Cell>(N*N)),
           rng(45), dist(0.0, 1.0) {};
 
@@ -19,11 +19,11 @@ void Cluster::init() {
             if (r >= R) {
                 grid[i*N+j].f = 1.0;
                 grid[i*N+j].boundary = true;
-                arr[i*N+j] = 1;
+                arc[i*N+j] = 1;
             } else {
                 grid[i*N+j].f = 0;
                 grid[i*N+j].boundary = false;
-                arr[i*N+j] = 0;
+                arc[i*N+j] = 0;
             }
             grid[i*N+j].cluster = false;
 
@@ -31,7 +31,7 @@ void Cluster::init() {
     }
     grid[cx*N+cy].cluster = true;
     grid[cx*N+cy].f = 0.0;
-    arr[cx*N+cy] = 1;
+    arc[cx*N+cy] = 1;
 }
 
 void Cluster::solveLaplace(size_t ITER) {
@@ -48,8 +48,8 @@ std::vector<Point> Cluster::getCandidates() {
     std::vector<Point> out;
     for (int i = 1; i < N-1; ++i)
         for (int j = 1; j < N-1; ++j){
+            arr[i*N+j] = grid[i*N+j].f;
             if (!grid[i*N+j].cluster){
-                arr[i*N+j] = grid[i*N+j].f;
                 if (grid[(i-1)*N+j].cluster || grid[(i+1)*N+j].cluster || 
                         grid[i*N+(j-1)].cluster || grid[i*N+(j+1)].cluster)
                     out.push_back({i,j});
@@ -81,7 +81,8 @@ void Cluster::step(size_t ITER = 10) {
     auto p = pick(cands);
     grid[p.x*N+p.y].cluster = true;
     grid[p.x*N+p.y].f = 0.0;
-    arr[p.x*N+p.y] = 1;
+    arc[p.x*N+p.y] = 1;
+    
 }
 
 void Cluster::compute() {

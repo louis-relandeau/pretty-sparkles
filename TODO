@@ -2,3 +2,5 @@ Visualize electric field
 Benchmark -> Speed up
 Make header file for dielectric_breakdown
 Define conventions
+
+Use blender to create geometry and assign boundary,
