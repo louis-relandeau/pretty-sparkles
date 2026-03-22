@@ -1,6 +1,8 @@
 cmake_minimum_required(VERSION 3.10)
 project(pretty-sparkles)
 
+# ========= Main =========
+
 set(IMGUI_DIR imgui)
 set(SRC_DIR src)
 add_subdirectory(glfw)
@@ -41,5 +43,18 @@ target_link_libraries(pretty-sparkles PRIVATE
 target_compile_options(pretty-sparkles PRIVATE -g -Wall -Wformat)
 
 target_compile_definitions(pretty-sparkles PRIVATE
-    REPO_ROOT="${CMAKE_SOURCE_DIR}"
+    REPO_ROOT=\"${CMAKE_SOURCE_DIR}\"
 )
+
+# ========= Benchmark =========
+
+add_executable(benchmark-test
+    ${SRC_DIR}/benchmark.cpp
+    ${SRC_DIR}/ClusterDBM.cpp
+)
+
+target_include_directories(benchmark-test PRIVATE
+    ${CMAKE_SOURCE_DIR}/include
+)
+
+target_compile_options(benchmark-test PRIVATE -g -Wall -Wformat)

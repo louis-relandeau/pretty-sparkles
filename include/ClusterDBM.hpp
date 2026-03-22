@@ -2,6 +2,8 @@
 
 #include <vector>
 #include <random>
+#include <optional>
+#include <cstdint>
 
 struct Cell {
     double f;
@@ -27,14 +29,20 @@ private:
     std::mt19937 rng;
     std::uniform_real_distribution<double> dist;
 
-    void solveLaplace(size_t ITER);
+    void checkForFieldFile(bool forceRecompute);
+    uint64_t hashFieldF();
+    void computeFieldMultiscale();
+    bool isFixed(int i, int j);
+    // If nullopt, point is either boundary or cluster
+    std::optional<double> computePointLaplace(Point p, int step);
+    void interpolateLevel(int step);
+    void solveLaplace();
     std::vector<Point> getCandidates();
-    Point pick(const std::vector<Point>& cands);
+    std::vector<Point> pick(std::vector<Point>& cands);
+
 public:
     Cluster(std::vector<float>& arr, std::vector<float>& arc, int N);
 
-    void init();
-    void step(size_t ITER);
-    void compute();
-    void print();
+    void init(bool forceRecompute = false);
+    void step();
 };

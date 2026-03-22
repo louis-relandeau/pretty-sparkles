@@ -1,6 +1,8 @@
-Visualize electric field
-Benchmark -> Speed up
-Make header file for dielectric_breakdown
-Define conventions
-
+Fix boundaries/gradient thing -> make a geometry, a field and growth cluster
+Integrate openMP
+Recompute the laplace from the point until the field stops changing in a sort of circular motion
+Possible DM cluster opimizations:
+    Red–Black Gauss–Seidel to split into two threads
+    Successive over relaxation
+    Multigrid v-cycle
 Use blender to create geometry and assign boundary,

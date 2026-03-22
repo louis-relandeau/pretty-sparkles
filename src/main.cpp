@@ -44,7 +44,6 @@ float field[ROWS][COLS];
 float circlular[ROWS][COLS];
 
 // UI-controlled parameters
-static int laplaceIteration = 20;
 static bool  animate  = true;
 static float time_val = 0.0f;
 
@@ -52,11 +51,7 @@ void fillMatrix() {
     
     for (int r = 0; r < ROWS; r++)
         for (int c = 0; c < COLS; c++) {
-            // float x = (float)c / COLS * 6.28f * freqX;
-            // float y = (float)r / ROWS * 6.28f * freqY;
-            // circlular[r][c] = geometry[r*COLS+c];
-            // field[r][c] = arr[r*COLS+c];
-            // matrix[r][c] = arc[r*COLS+c];
+            // matrix[r][c] = arr[r*COLS+c];
         }
 }
 
@@ -141,7 +136,7 @@ int main() {
 
     // Render loop
     while (!glfwWindowShouldClose(window)) {
-        cluster.step(laplaceIteration);
+        cluster.step();
 
         glfwPollEvents();
         if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
@@ -180,9 +175,7 @@ int main() {
         // }
 
         ImGui::SeparatorText("Simulation parameters");
-        bool changed = false;
-        changed |= ImGui::SliderInt("laplace iterations", &laplaceIteration, 5, 100);
-        if (changed && !animate) {
+        if (!animate) {
             fillMatrix();
             tex0.update();
             tex1.update();
