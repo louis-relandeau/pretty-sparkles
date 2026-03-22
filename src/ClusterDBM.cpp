@@ -203,19 +203,29 @@ std::vector<Point> Cluster::getCandidates() {
     return out;
 }
 
-Point Cluster::pick(const std::vector<Point>& cands) {
-    std::vector<double> probs;
-    double sum = 0.0;
+std::vector<Point> Cluster::pick(std::vector<Point>& cands) {
+    int numPicks = (int)std::ceil(0.0075 * cands.size());
+
+    std::vector<double> weights;
+    weights.reserve(cands.size());
+
     for (auto& p : cands) {
-        double val = std::pow(grid[p.x*N+p.y].f, ETA);
-        probs.push_back(val);
-        sum += val;
+        weights.push_back(std::pow(grid[p.x * N + p.y].f, ETA));
     }
-    for (auto& p : probs) p /= sum;
-    double r = dist(rng), acc = 0.0;
-    for (int i = 0; i < (int)cands.size(); ++i)
-        if ((acc += probs[i]) >= r) return cands[i];
-    return cands.back();
+
+    std::vector<Point> picks;
+
+    for (int n = 0; n < numPicks; ++n) {
+        std::discrete_distribution<int> dist(weights.begin(), weights.end());
+        int idx = dist(rng);
+
+        picks.push_back(cands[idx]);
+
+        cands.erase(cands.begin() + idx);
+        weights.erase(weights.begin() + idx);
+    }
+
+    return picks;
 }
 
 void Cluster::step() {
@@ -224,8 +234,10 @@ void Cluster::step() {
     if (cands.empty()) {
         return;
     }
-    auto p = pick(cands);
-    grid[p.x*N+p.y].cluster = true;
-    grid[p.x*N+p.y].f = 0.0;
-    arr[p.x*N+p.y] = 1;
+    auto picks = pick(cands);
+    for (const auto& p : picks) {
+        grid[p.x*N+p.y].cluster = true;
+        grid[p.x*N+p.y].f = 0.0;
+        arr[p.x*N+p.y] = 1;
+    }
 }

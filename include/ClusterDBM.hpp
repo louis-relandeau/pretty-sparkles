@@ -37,7 +37,7 @@ private:
     void interpolateLevel(int step);
     void solveLaplace();
     std::vector<Point> getCandidates();
-    Point pick(const std::vector<Point>& cands);
+    std::vector<Point> pick(std::vector<Point>& cands);
 
 public:
     Cluster(std::vector<float>& arr, int N);
