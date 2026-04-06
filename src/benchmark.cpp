@@ -76,7 +76,7 @@ int main() {
     })});
 
     // Measure time to N steps
-    int numSteps = 10;
+    int numSteps = 1000;
     results.push_back({"Time for " + std::to_string(numSteps) + " steps", measureTime([&]() {
         for (int i = 0; i < numSteps; ++i) {
             cluster.step();
