@@ -12,7 +12,7 @@
 #include <filesystem>
 
 #include "Shader.hpp"
-#include "ClusterDBM.hpp"
+#include "SolverDBM.hpp"
 #include "CircularShape.hpp"
 #include "Texture.hpp"
 
@@ -32,7 +32,7 @@ void framebufferSizeCallback(GLFWwindow* /*window*/, int width, int height) {
 
 
 constexpr int N = 300;  // Compile-time constant
-std::vector<float> arr(N*N, 0);
+std::vector<float> field_arr(N*N, 0);
 std::vector<float> geometry(N*N, 0);
 std::vector<float> arc(N*N, 0);
 
@@ -47,18 +47,9 @@ float circlular[ROWS][COLS];
 static bool  animate  = true;
 static float time_val = 0.0f;
 
-void fillMatrix() {
-    
-    for (int r = 0; r < ROWS; r++)
-        for (int c = 0; c < COLS; c++) {
-            // matrix[r][c] = arr[r*COLS+c];
-        }
-}
-
-
 int main() {
     
-    Cluster cluster(arr, arc, N);
+    SolverDBM cluster(field_arr, arc, N);
     CircularShape circle(geometry, N);
     cluster.init();
 
@@ -117,10 +108,9 @@ int main() {
     glEnableVertexAttribArray(1);
 
     // Texture
-    fillMatrix();
     Texture tex0(arc, N);
     Texture tex1(geometry, N);
-    Texture tex2(arr, N);
+    Texture tex2(field_arr, N);
 
     // Shader
     shader.use();
@@ -145,7 +135,6 @@ int main() {
         // Animate
         if (animate) {
             time_val += 0.02f;
-            fillMatrix();
             tex0.update();
             tex1.update();
             tex2.update();
@@ -176,7 +165,6 @@ int main() {
 
         ImGui::SeparatorText("Simulation parameters");
         if (!animate) {
-            fillMatrix();
             tex0.update();
             tex1.update();
             tex2.update();
