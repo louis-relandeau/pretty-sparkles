@@ -10,6 +10,7 @@
 #include <iostream>
 #include <cmath>
 #include <filesystem>
+#include <cstdint>
 
 #include "Shader.hpp"
 #include "SolverDBM.hpp"
@@ -49,11 +50,15 @@ static float time_val = 0.0f;
 
 int main() {
     
-    SolverDBM cluster(field_arr, arc, N);
+    // Build geometry/boundary first, then pass it to the solver
     CircularShape circle(geometry, N);
-    cluster.init();
+    std::vector<uint8_t> geometryBoundary(N*N);
+    for (int i = 0; i < N*N; ++i) geometryBoundary[i] = geometry[i] ? 1 : 0;
 
-    // cluster.print();
+    SolverDBM solver(field_arr, arc, N, geometryBoundary);
+    solver.init();
+
+    // solver.print();
 
     // GLFW
     if (!glfwInit()) { std::cerr << "GLFW init failed\n"; return -1; }
@@ -126,7 +131,7 @@ int main() {
 
     // Render loop
     while (!glfwWindowShouldClose(window)) {
-        cluster.step();
+        solver.step();
 
         glfwPollEvents();
         if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
@@ -153,7 +158,7 @@ int main() {
         ImGui::SeparatorText("Colormap");
         ImGui::Combo("##cmap", &colormapIdx, colormapNames, IM_ARRAYSIZE(colormapNames));
         if (ImGui::Button("RESET")) {
-            cluster.init();
+            solver.init();
         }
         ImGui::SeparatorText("Filter");
         // if (ImGui::Checkbox("Smooth interpolation", &smoothFilter)) {
