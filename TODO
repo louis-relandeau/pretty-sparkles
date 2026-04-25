@@ -1,9 +1,7 @@
-Fix boundaries/gradient thing -> make a geometry, a field and growth cluster
-Integrate openMP
-Recompute the laplace from the point until the field stops changing in a sort of circular motion
+Use blender to create geometry and assign boundary
+
 Possible DM cluster opimizations:
-    Red–Black Gauss–Seidel to split into two threads
     Successive over relaxation
     Multigrid v-cycle
-Use blender to create geometry and assign boundary
-Improve isFixed everywhere
+
+Add auto-format (clang + githooks?)

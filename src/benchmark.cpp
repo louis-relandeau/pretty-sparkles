@@ -6,7 +6,7 @@
 #include <iomanip>
 #include <optional>
 
-#include "ClusterDBM.hpp"
+#include "SolverDBM.hpp"
 
 double measureTime(const std::function<void()>& func, bool quiet = true) {
     auto start = std::chrono::high_resolution_clock::now();
@@ -64,7 +64,7 @@ int main() {
     const int N = 300;
     std::vector<float> arr(N*N, 0);
     std::vector<float> arc(N*N, 0);
-    Cluster cluster(arr, arc, N);
+    SolverDBM cluster(arr, arc, N);
     // Measure time to do the init with force recompute (ignoring any existing field file)
     results.push_back({"Initialization time with force recompute", measureTime([&]() {
         cluster.init(true /*forceRecompute*/);

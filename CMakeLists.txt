@@ -1,8 +1,9 @@
 cmake_minimum_required(VERSION 3.10)
 project(pretty-sparkles)
 
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -pg")
-set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -pg")
+# for profiling with gprof
+# set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -pg")
+# set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -pg")
 
 # ========= Main =========
 
@@ -14,7 +15,7 @@ set(SOURCES
     ${SRC_DIR}/main.cpp
     ${SRC_DIR}/glad.c
     ${SRC_DIR}/Shader.cpp
-    ${SRC_DIR}/ClusterDBM.cpp
+    ${SRC_DIR}/SolverDBM.cpp
     ${SRC_DIR}/CircularShape.cpp
     ${IMGUI_DIR}/imgui.cpp
     ${IMGUI_DIR}/imgui_demo.cpp
@@ -53,7 +54,7 @@ target_compile_definitions(pretty-sparkles PRIVATE
 
 add_executable(benchmark-test
     ${SRC_DIR}/benchmark.cpp
-    ${SRC_DIR}/ClusterDBM.cpp
+    ${SRC_DIR}/SolverDBM.cpp
 )
 
 target_include_directories(benchmark-test PRIVATE
@@ -61,3 +62,4 @@ target_include_directories(benchmark-test PRIVATE
 )
 
 target_compile_options(benchmark-test PRIVATE -g -Wall -Wformat)
+target_link_libraries(benchmark-test PRIVATE OpenMP::OpenMP_CXX)

@@ -10,9 +10,10 @@
 #include <iostream>
 #include <cmath>
 #include <filesystem>
+#include <cstdint>
 
 #include "Shader.hpp"
-#include "ClusterDBM.hpp"
+#include "SolverDBM.hpp"
 #include "CircularShape.hpp"
 #include "Texture.hpp"
 
@@ -32,7 +33,7 @@ void framebufferSizeCallback(GLFWwindow* /*window*/, int width, int height) {
 
 
 constexpr int N = 300;  // Compile-time constant
-std::vector<float> arr(N*N, 0);
+std::vector<float> field_arr(N*N, 0);
 std::vector<float> geometry(N*N, 0);
 std::vector<float> arc(N*N, 0);
 
@@ -47,22 +48,17 @@ float circlular[ROWS][COLS];
 static bool  animate  = true;
 static float time_val = 0.0f;
 
-void fillMatrix() {
-    
-    for (int r = 0; r < ROWS; r++)
-        for (int c = 0; c < COLS; c++) {
-            // matrix[r][c] = arr[r*COLS+c];
-        }
-}
-
-
 int main() {
     
-    Cluster cluster(arr, arc, N);
+    // Build geometry/boundary first, then pass it to the solver
     CircularShape circle(geometry, N);
-    cluster.init();
+    std::vector<uint8_t> geometryBoundary(N*N);
+    for (int i = 0; i < N*N; ++i) geometryBoundary[i] = geometry[i] ? 1 : 0;
 
-    // cluster.print();
+    SolverDBM solver(field_arr, arc, N, geometryBoundary);
+    solver.init();
+
+    // solver.print();
 
     // GLFW
     if (!glfwInit()) { std::cerr << "GLFW init failed\n"; return -1; }
@@ -117,10 +113,9 @@ int main() {
     glEnableVertexAttribArray(1);
 
     // Texture
-    fillMatrix();
     Texture tex0(arc, N);
     Texture tex1(geometry, N);
-    Texture tex2(arr, N);
+    Texture tex2(field_arr, N);
 
     // Shader
     shader.use();
@@ -131,12 +126,12 @@ int main() {
 
     // State driven by ImGui
     int  colormapIdx  = 0;
-    bool smoothFilter = false;
+    // bool smoothFilter = false;
     const char* colormapNames[] = { "Viridis", "Heat", "Grayscale" };
 
     // Render loop
     while (!glfwWindowShouldClose(window)) {
-        cluster.step();
+        solver.step();
 
         glfwPollEvents();
         if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
@@ -145,7 +140,6 @@ int main() {
         // Animate
         if (animate) {
             time_val += 0.02f;
-            fillMatrix();
             tex0.update();
             tex1.update();
             tex2.update();
@@ -164,7 +158,7 @@ int main() {
         ImGui::SeparatorText("Colormap");
         ImGui::Combo("##cmap", &colormapIdx, colormapNames, IM_ARRAYSIZE(colormapNames));
         if (ImGui::Button("RESET")) {
-            cluster.init();
+            solver.init();
         }
         ImGui::SeparatorText("Filter");
         // if (ImGui::Checkbox("Smooth interpolation", &smoothFilter)) {
@@ -176,7 +170,6 @@ int main() {
 
         ImGui::SeparatorText("Simulation parameters");
         if (!animate) {
-            fillMatrix();
             tex0.update();
             tex1.update();
             tex2.update();
