@@ -1,9 +1,6 @@
 Use blender to create geometry and assign boundary
 
 Possible DM cluster opimizations:
-    Recompute the laplace from the point until the field stops changing in a sort of circular motion
-    Integrate openMP
-    Red–Black Gauss–Seidel to split into two threads
     Successive over relaxation
     Multigrid v-cycle
 

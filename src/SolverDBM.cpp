@@ -134,26 +134,47 @@ void SolverDBM::computeFieldMultiscale() {
 
     for (int step = maxStep; step >= 1; step /= 2) {
         double max_diff;
-        std::vector<float> new_field = field;
+
+        // Red-Black Gauss-Seidel
         do {
             max_diff = 0.0;
 
+            // red pass
 #ifdef _OPENMP
-#pragma omp parallel for collapse(2) reduction(max:max_diff) schedule(static)
+#pragma omp parallel for collapse(2) reduction(max:max_diff) schedule(guided)
 #endif
             for (int i = step; i < N - step; i += step) {
                 for (int j = step; j < N - step; j += step) {
+                    int ri = (i/step) + (j/step);
+                    if ((ri & 1) != 0) continue; // skip black
                     double field_val;
                     if (!computePointLaplace(i, j, step, field_val)) continue;
                     int idx = i*N + j;
                     double old = field[idx];
                     double diff = std::abs(field_val - old);
-                    new_field[idx] = static_cast<float>(field_val);
+                    field[idx] = static_cast<float>(field_val);
                     if (diff > max_diff) max_diff = diff;
                 }
             }
 
-            field.swap(new_field);
+            // black pass
+#ifdef _OPENMP
+#pragma omp parallel for collapse(2) reduction(max:max_diff) schedule(guided)
+#endif
+            for (int i = step; i < N - step; i += step) {
+                for (int j = step; j < N - step; j += step) {
+                    int ri = (i/step) + (j/step);
+                    if ((ri & 1) == 0) continue; // skip red
+                    double field_val;
+                    if (!computePointLaplace(i, j, step, field_val)) continue;
+                    int idx = i*N + j;
+                    double old = field[idx];
+                    double diff = std::abs(field_val - old);
+                    field[idx] = static_cast<float>(field_val);
+                    if (diff > max_diff) max_diff = diff;
+                }
+            }
+
         } while (max_diff > 1e-3);
 
         if (step > 1) interpolateLevel(step);
