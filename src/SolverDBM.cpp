@@ -7,6 +7,9 @@
 #include <fstream>
 #include <filesystem>
 #include <cstring>
+#ifdef _OPENMP
+#include <omp.h>
+#endif
 
 SolverDBM::SolverDBM(std::vector<float>& field_,
                      std::vector<float>& arc_,
@@ -19,6 +22,13 @@ SolverDBM::SolverDBM(std::vector<float>& field_,
     } else {
         boundary.clear();
     }
+
+#ifdef _OPENMP
+    std::cout << "OpenMP threads (max): " << omp_get_max_threads() << "\n";
+#else
+    std::cout << "OpenMP not enabled in this build.\n";
+#endif
+
 }
 
 void SolverDBM::setBoundary(const std::vector<uint8_t>& b) {
@@ -31,18 +41,20 @@ void SolverDBM::init(bool forceRecompute) {
     arc.assign(N*N, 0.0f);
 
     if (!boundary.empty()) {
+        #ifdef _OPENMP
+        #pragma omp parallel for collapse(2) schedule(static)
+        #endif
         for (int i = 0; i < N; ++i) {
             for (int j = 0; j < N; ++j) {
                 int idx = i*N + j;
-                if (boundary[idx]) {
-                    field[idx] = 1.0f;
-                } else {
-                    field[idx] = 0.0f;
-                }
+                field[idx] = boundary[idx] ? 1.0f : 0.0f;
             }
         }
     } else {
         boundary.assign(N*N, 0);
+        #ifdef _OPENMP
+        #pragma omp parallel for collapse(2) schedule(static)
+        #endif
         for (int i = 0; i < N; ++i) {
             for (int j = 0; j < N; ++j) {
                 int idx = i*N + j;
@@ -122,8 +134,13 @@ void SolverDBM::computeFieldMultiscale() {
 
     for (int step = maxStep; step >= 1; step /= 2) {
         double max_diff;
+        std::vector<float> new_field = field;
         do {
             max_diff = 0.0;
+
+#ifdef _OPENMP
+#pragma omp parallel for collapse(2) reduction(max:max_diff) schedule(static)
+#endif
             for (int i = step; i < N - step; i += step) {
                 for (int j = step; j < N - step; j += step) {
                     double field_val;
@@ -131,10 +148,12 @@ void SolverDBM::computeFieldMultiscale() {
                     int idx = i*N + j;
                     double old = field[idx];
                     double diff = std::abs(field_val - old);
+                    new_field[idx] = static_cast<float>(field_val);
                     if (diff > max_diff) max_diff = diff;
-                    field[idx] = static_cast<float>(field_val);
                 }
             }
+
+            field.swap(new_field);
         } while (max_diff > 1e-3);
 
         if (step > 1) interpolateLevel(step);
@@ -160,6 +179,9 @@ bool SolverDBM::computePointLaplace(int x, int y, int step, double& out) const {
 
 void SolverDBM::interpolateLevel(int step) {
     int half = step / 2;
+    #ifdef _OPENMP
+    #pragma omp parallel for collapse(2) schedule(static)
+    #endif
     for (int i = 0; i < N - step; i += step) {
         for (int j = 0; j < N - step; j += step) {
             int i0 = i, j0 = j, i1 = i + step, j1 = j + step;

@@ -61,3 +61,4 @@ target_include_directories(benchmark-test PRIVATE
 )
 
 target_compile_options(benchmark-test PRIVATE -g -Wall -Wformat)
+target_link_libraries(benchmark-test PRIVATE OpenMP::OpenMP_CXX)
