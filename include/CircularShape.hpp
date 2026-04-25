@@ -1,11 +1,17 @@
 #pragma once
+
+#include "BoundaryGeometry.hpp"
 #include <vector>
-class CircularShape {
+
+class CircularShape : public BoundaryGeometry {
 private:
-    int gridsize;
-    int radius = (gridsize - 2)/2;
-    int thickness = 5;
+  int thickness;
+  float centerPotential;
+  float outerPotential;
+
 public:
-    std::vector<float>& result;
-    CircularShape(std::vector<float>& geometry, int N);
+  explicit CircularShape(int thickness = 5, float centerPotential = 1.0f,
+                         float outerPotential = 0.0f);
+
+  void build(BoundaryConditionGrid &out, int N) const override;
 };

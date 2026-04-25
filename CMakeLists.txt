@@ -1,8 +1,9 @@
 cmake_minimum_required(VERSION 3.10)
 project(pretty-sparkles)
 
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -pg")
-set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -pg")
+# for profiling with gprof
+# set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -pg")
+# set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -pg")
 
 # ========= Main =========
 
@@ -14,8 +15,10 @@ set(SOURCES
     ${SRC_DIR}/main.cpp
     ${SRC_DIR}/glad.c
     ${SRC_DIR}/Shader.cpp
+    ${SRC_DIR}/SimulationConfig.cpp
     ${SRC_DIR}/SolverDBM.cpp
     ${SRC_DIR}/CircularShape.cpp
+    ${SRC_DIR}/NeedlePlateShape.cpp
     ${IMGUI_DIR}/imgui.cpp
     ${IMGUI_DIR}/imgui_demo.cpp
     ${IMGUI_DIR}/imgui_draw.cpp

@@ -1,10 +1,37 @@
 Use blender to create geometry and assign boundary
 
 Possible DM cluster opimizations:
-    Recompute the laplace from the point until the field stops changing in a sort of circular motion
-    Integrate openMP
-    Red–Black Gauss–Seidel to split into two threads
     Successive over relaxation
     Multigrid v-cycle
 
-Add auto-format (clang + githooks?)
+----------------
+
+For AI to have a good overview:
+
+Key findings in existing code
+
+- SolverDBM already implements a Laplace field solver and a discrete DBM-style arc/growth model (field, arc, boundary) — good starting point.
+- Code uses floats, a Laplace-only approach, and a heuristic pick/weight growth (DBM). That models pattern growth but omits space charge, ionization kinetics, transport, and photoionization needed for realistic lightning/streamer physics.
+- There’s existing infrastructure for file caching and OpenMP for parallelism.
+Physics-focused recommendation summary (concise)
+
+- Use SI units and double precision for fields, densities, and times.
+- Replace Laplace-only solve with Poisson solver to include space charge (solve ∇·(ε∇φ) = −ρ).
+- Add charge carriers and transport:
+    - Electron and ion densities (ne, ni) on the grid.
+    - Drift-diffusion equations (∂n/∂t = −∇·(μ n E) + ∇·(D ∇n) + source − loss).
+    - Mobility μ(E, p, T), diffusion D.
+- Add ionization chemistry:
+    - Townsend ionization coefficient α(E,p), attachment, recombination rates.
+    - Photoionization (Zheleznyak or simplified Helmholtz model) for air to allow streamer propagation in gaps.
+- Seed stochastic avalanches for streamer branching and use stochastic source terms or particle-in-cell (PIC) for electrons for high fidelity.
+- Use adaptive timestep and substepping (CFL and ionization-limited) and possibly AMR or local refinement near streamers.
+- Boundary/electrode models: electron emission, secondary emission, charged surfaces, and Paschen-corrected breakdown thresholds.
+
+Concrete near-term plan (recommended first implementation)
+
+- Add a physics/Constants.hpp and physics/Parameters.hpp with SI constants and physical parameters.
+- Refactor SolverDBM into Physics::DBM + Electrostatics modules; keep arc as a high-level visualization/indicator only.
+- Implement Poisson solver (multigrid or conjugate-gradient) producing field E = −∇φ.
+- Implement a 2D drift-diffusion time step for electrons with Townsend ionization source term (explicit/semi-implicit) and test Townsend avalanche in uniform field.
+- Add a simple photoionization model and run streamer propagation tests.
