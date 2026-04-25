@@ -28,6 +28,8 @@ void SolverDBM::setBoundary(const std::vector<uint8_t>& b) {
 void SolverDBM::init(bool forceRecompute) {
     int R = N / 2 - 2;
 
+    arc.assign(N*N, 0.0f);
+
     if (!boundary.empty()) {
         for (int i = 0; i < N; ++i) {
             for (int j = 0; j < N; ++j) {
@@ -185,7 +187,6 @@ std::vector<Point> SolverDBM::getCandidates() {
     std::vector<Point> out;
     for (int i = 1; i < N-1; ++i) {
         for (int j = 1; j < N-1; ++j) {
-            int idx = i*N + j;
             if (!isFixed(i, j)) {
                 if (arc[(i-1)*N + j] || arc[(i+1)*N + j] || arc[i*N + (j-1)] || arc[i*N + (j+1)])
                     out.push_back({i,j});

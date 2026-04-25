@@ -6,11 +6,8 @@
 class Texture{
     GLuint tex0;
     int N;
-
-    int unit;
-    
     std::vector<float>& data;
-
+    int unit;
     static int nextUnit;
 public:
     Texture(std::vector<float>& data, int N) : N(N), data(data), unit(nextUnit++) {

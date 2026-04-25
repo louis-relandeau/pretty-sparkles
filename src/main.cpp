@@ -126,7 +126,7 @@ int main() {
 
     // State driven by ImGui
     int  colormapIdx  = 0;
-    bool smoothFilter = false;
+    // bool smoothFilter = false;
     const char* colormapNames[] = { "Viridis", "Heat", "Grayscale" };
 
     // Render loop
