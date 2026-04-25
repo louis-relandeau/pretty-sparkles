@@ -1,5 +1,3 @@
-Fix boundaries/gradient thing -> make a geometry, a field and growth cluster
-    Get candidate, only checks boundaries of arcs, separate array
 Use blender to create geometry and assign boundary
 
 Possible DM cluster opimizations:

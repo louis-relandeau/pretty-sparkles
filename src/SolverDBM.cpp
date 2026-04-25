@@ -185,14 +185,32 @@ void SolverDBM::solveLaplace() {
 
 std::vector<Point> SolverDBM::getCandidates() {
     std::vector<Point> out;
-    for (int i = 1; i < N-1; ++i) {
-        for (int j = 1; j < N-1; ++j) {
-            if (!isFixed(i, j)) {
-                if (arc[(i-1)*N + j] || arc[(i+1)*N + j] || arc[i*N + (j-1)] || arc[i*N + (j+1)])
-                    out.push_back({i,j});
+    if (N <= 2) return out;
+
+    std::vector<uint8_t> added(N * N); // for candidates already found
+
+    const int di[4] = {-1, 1, 0, 0};
+    const int dj[4] = {0, 0, -1, 1};
+
+    for (int i = 0; i < N; ++i) {
+        for (int j = 0; j < N; ++j) {
+            int idx = i * N + j;
+            if (arc[idx] == 0.0f) continue; // early reject non-arc points
+
+            for (int k = 0; k < 4; ++k) {
+                int ni = i + di[k];
+                int nj = j + dj[k];
+                if (ni <= 0 || ni >= N-1 || nj <= 0 || nj >= N-1) continue; // no out of bounds
+                int nidx = ni * N + nj;
+                if (added[nidx]) continue; // already found
+                if (!isFixed(ni, nj)) {
+                    added[nidx] = 1;
+                    out.push_back({ni, nj});
+                }
             }
         }
     }
+
     return out;
 }
 
