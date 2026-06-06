@@ -36,7 +36,7 @@ void framebufferSizeCallback(GLFWwindow * /*window*/, int width, int height) {
   glViewport(0, 0, width, height);
 }
 
-constexpr int N = 300; // Compile-time constant
+constexpr int N = 500;
 std::vector<float> field_arr(N *N, 0);
 std::vector<float> geometry(N *N, 0);
 std::vector<float> arc(N *N, 0);

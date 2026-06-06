@@ -343,7 +343,9 @@ std::vector<Point> SolverDBM::getCandidates() {
 }
 
 std::vector<Point> SolverDBM::pick(std::vector<Point> &cands) {
-  int numPicks = std::max(1, (int)std::ceil(0.0075 * cands.size()));
+  int numPicks = 1;
+  numPicks = std::max(numPicks, (int)std::ceil(0.0075 * cands.size()));
+  numPicks = std::min(numPicks, 10);
   std::vector<double> weights;
   weights.reserve(cands.size());
   float minV = 1e30f;
