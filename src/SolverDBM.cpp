@@ -202,8 +202,8 @@ void SolverDBM::computeFieldMultiscale() {
 #ifdef _OPENMP
 #pragma omp parallel for collapse(2) reduction(max : max_diff) schedule(guided)
 #endif
-      for (int i = step; i < N - step; i += step) {
-        for (int j = step; j < N - step; j += step) {
+      for (int i = 0; i < N; i += step) {
+        for (int j = 0; j < N; j += step) {
           int ri = (i / step) + (j / step);
           if ((ri & 1) != 0)
             continue; // skip black
@@ -223,8 +223,8 @@ void SolverDBM::computeFieldMultiscale() {
 #ifdef _OPENMP
 #pragma omp parallel for collapse(2) reduction(max : max_diff) schedule(guided)
 #endif
-      for (int i = step; i < N - step; i += step) {
-        for (int j = step; j < N - step; j += step) {
+      for (int i = 0; i < N; i += step) {
+        for (int j = 0; j < N; j += step) {
           int ri = (i / step) + (j / step);
           if ((ri & 1) == 0)
             continue; // skip red
@@ -253,13 +253,28 @@ bool SolverDBM::isFixed(int i, int j) const {
 }
 
 bool SolverDBM::computePointLaplace(int x, int y, int step, double &out) const {
-  int base = x * N + y;
   if (isFixed(x, y))
     return false;
-  int stride = step * N;
-  double v = field[base - stride] + field[base + stride] + field[base - step] +
-             field[base + step];
-  out = 0.25 * v;
+
+  double sum = 0.0;
+  int count = 0;
+
+  const int neighbors[4][2] = {
+      {x - step, y}, {x + step, y}, {x, y - step}, {x, y + step}};
+
+  for (const auto &n : neighbors) {
+    int ni = n[0];
+    int nj = n[1];
+    if (ni < 0 || ni >= N || nj < 0 || nj >= N)
+      continue;
+    sum += field[ni * N + nj];
+    ++count;
+  }
+
+  if (count == 0)
+    return false;
+
+  out = sum / static_cast<double>(count);
   return true;
 }
 
@@ -302,7 +317,7 @@ std::vector<Point> SolverDBM::getCandidates() {
     for (int k = 0; k < 4; ++k) {
       int ni = i + di[k];
       int nj = j + dj[k];
-      if (ni <= 0 || ni >= N - 1 || nj <= 0 || nj >= N - 1)
+      if (ni < 0 || ni >= N || nj < 0 || nj >= N)
         continue;
       int nidx = ni * N + nj;
       if (added[nidx])
